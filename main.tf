@@ -133,14 +133,14 @@ module "vpc_trust" {
 
 # Create IAM service account for accessing bootstrap bucket
 module "iam_service_account" {
-  source = ".modules/iam_service_account/"
+  source = "./modules/iam_service_account/"
 
   service_account_id = "${local.prefix}vmseries-sa"
 }
 
 # Create storage bucket to bootstrap VM-Series.
 module "bootstrap" {
-  source = ".modules/bootstrap/"
+  source = "./modules/bootstrap/"
 
   service_account = module.iam_service_account.email
   files = {
@@ -152,7 +152,7 @@ module "bootstrap" {
 # Create 2 VM-Series firewalls
 module "vmseries" {
   for_each = local.vmseries_vms
-  source   = ".modules/vmseries"
+  source   = "./modules/vmseries"
 
   name                  = "${local.prefix}${each.key}"
   zone                  = each.value.zone
@@ -192,7 +192,7 @@ module "vmseries" {
 # Due to intranet load balancer solution - DNAT for healthchecks traffic should be configured on firewall.
 # Source: https://knowledgebase.paloaltonetworks.com/KCSArticleDetail?id=kA10g000000PP9QCAW
 module "lb_internal" {
-  source = ".modules/lb_internal/"
+  source = "./modules/lb_internal/"
 
   name       = "${local.prefix}fw-ilb"
   backends   = { for k, v in module.vmseries : k => v.instance_group_self_link }
@@ -203,7 +203,7 @@ module "lb_internal" {
 }
 
 module "lb_external" {
-  source = ".modules/lb_external/"
+  source = "./modules/lb_external/"
 
   instances = [for k, v in module.vmseries : module.vmseries[k].self_link]
   name      = "${local.prefix}fw-extlb"
@@ -373,7 +373,7 @@ resource "google_compute_instance_group" "spoke1_ig" {
 }
 
 module "spoke1_ilb" {
-  source = ".modules/lb_internal/"
+  source = "./modules/lb_internal/"
 
   name       = "${local.prefix}spoke1-ilb"
   backends   = { 0 = google_compute_instance_group.spoke1_ig.self_link }
